@@ -22,6 +22,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Gatekeeper.LdapPacketParserLibrary" Version="0.0.1-alpha" />
+    <ProjectReference Include="..\..\LdapPacketParserLibrary\Gatekeeper.LdapPacketParserLibrary\Gatekeeper.LdapPacketParserLibrary.csproj" />
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Gatekeeper.LdapServerLibrary.Network
@@ -21,7 +22,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
             _port = port;
         }
 
-        internal async Task Start()
+        internal async Task Start(CancellationToken cancellationToken)
         {
             TcpListener? server = null;
             try
@@ -29,11 +30,16 @@ namespace Gatekeeper.LdapServerLibrary.Network
                 server = new TcpListener(_ipAddress, _port);
                 server.Start();
 
-                while (true)
+                while (!cancellationToken.IsCancellationRequested)
                 {
                     TcpClient client = await server.AcceptTcpClientAsync();
                     _connectionManager.AddClient(client);
                 }
+            }
+            catch (Exception e)
+            {
+                ILogger? logger = SingletonContainer.GetLogger();
+                logger?.LogException(e);
             }
             finally
             {

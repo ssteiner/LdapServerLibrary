@@ -1,5 +1,7 @@
+using System;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
 using Gatekeeper.LdapServerLibrary.Network;
 
@@ -8,7 +10,8 @@ namespace Gatekeeper.LdapServerLibrary
     public class LdapServer
     {
         public int Port = 339;
-        public IPAddress IPAddress = IPAddress.Parse("127.0.0.1"); 
+        public IPAddress IPAddress = IPAddress.Parse("127.0.0.1");
+        private CancellationTokenSource cancellation;
 
         public void RegisterEventListener(LdapEvents ldapEvents)
         {
@@ -33,7 +36,27 @@ namespace Gatekeeper.LdapServerLibrary
                 IPAddress,
                 Port
             );
-            await listener.Start();
+            if (cancellation != null)
+                DisposeCancellationTokenSource();
+            cancellation = new CancellationTokenSource();
+            await listener.Start(cancellation.Token);
+        }
+
+        public void Stop()
+        {
+            cancellation.Cancel();
+        }
+
+        private void DisposeCancellationTokenSource()
+        {
+            try
+            {
+                cancellation.Dispose();
+            }
+            catch (Exception)
+            {
+
+            }
         }
     }
 }
