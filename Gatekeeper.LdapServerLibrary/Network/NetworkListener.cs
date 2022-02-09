@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -39,7 +40,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
             catch (Exception e)
             {
                 ILogger? logger = SingletonContainer.GetLogger();
-                logger?.LogException(e);
+                logger?.LogError(e, "Exception dealing with inbound requests");
             }
             finally
             {

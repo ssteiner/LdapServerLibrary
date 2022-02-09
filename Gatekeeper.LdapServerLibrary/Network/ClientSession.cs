@@ -1,13 +1,14 @@
+using Gatekeeper.LdapServerLibrary.Engine;
+using Gatekeeper.LdapServerLibrary.Engine.Handler;
+using Gatekeeper.LdapServerLibrary.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using Gatekeeper.LdapServerLibrary.Engine;
-using Gatekeeper.LdapServerLibrary.Models;
-using Gatekeeper.LdapServerLibrary.Engine.Handler;
-using System.Net;
 
 namespace Gatekeeper.LdapServerLibrary.Network
 {
@@ -35,8 +36,8 @@ namespace Gatekeeper.LdapServerLibrary.Network
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                List<Byte> PacketLength = new List<Byte>();
-                Byte[] LengthBuffer = new byte[10];
+                List<byte> PacketLength = new List<byte>();
+                byte[] LengthBuffer = new byte[10];
                 int streamPosition = 0;
                 int? packetSize = null;
                 bool isMultiByteSize = false;
@@ -117,7 +118,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
                             _initializedTls = true;
                         }
 
-                        Byte[] data = await ReadFullyAsync(rawOrSslStream);
+                        byte[] data = await ReadFullyAsync(rawOrSslStream);
 
                         await HandleAsync(data, rawOrSslStream, engine);
                     }
@@ -126,7 +127,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
                         ILogger? logger = SingletonContainer.GetLogger();
                         if (logger != null)
                         {
-                            logger.LogException(e);
+                            logger.LogError(e, $"Exception handling request from {endpoint}");
                         }
 
                         break;
@@ -141,13 +142,13 @@ namespace Gatekeeper.LdapServerLibrary.Network
 
         private async Task HandleAsync(byte[] bytes, Stream stream, DecisionEngine engine)
         {
-            Gatekeeper.LdapPacketParserLibrary.Parser parser = new Gatekeeper.LdapPacketParserLibrary.Parser();
+            LdapPacketParserLibrary.Parser parser = new LdapPacketParserLibrary.Parser();
             LdapPacketParserLibrary.Models.LdapMessage message = parser.TryParsePacket(bytes);
 
             List<LdapMessage> replies = await engine.GenerateReply(message);
             foreach (LdapMessage outMsg in replies)
             {
-                if (outMsg.ProtocolOp.GetType() == typeof(Gatekeeper.LdapServerLibrary.Models.Operations.Response.UnbindDummyResponse))
+                if (outMsg.ProtocolOp.GetType() == typeof(Models.Operations.Response.UnbindDummyResponse))
                 {
                     _clientIsConnected = false;
                     break;
@@ -155,9 +156,9 @@ namespace Gatekeeper.LdapServerLibrary.Network
                 byte[] msg = (new Parser.PacketParser()).TryEncodePacket(outMsg);
                 stream.Write(msg, 0, msg.Length);
 
-                if (outMsg.ProtocolOp.GetType() == typeof(Gatekeeper.LdapServerLibrary.Models.Operations.Response.ExtendedOperationResponse))
+                if (outMsg.ProtocolOp.GetType() == typeof(Models.Operations.Response.ExtendedOperationResponse))
                 {
-                    var response = ((Gatekeeper.LdapServerLibrary.Models.Operations.Response.ExtendedOperationResponse)outMsg.ProtocolOp);
+                    var response = (Models.Operations.Response.ExtendedOperationResponse)outMsg.ProtocolOp;
                     if (response.ResponseName == ExtendedRequestHandler.StartTLS)
                     {
                         _useStartTls = true;

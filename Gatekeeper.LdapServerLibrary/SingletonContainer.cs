@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography.X509Certificates;
 using Gatekeeper.LdapServerLibrary.Engine;
 using Gatekeeper.LdapServerLibrary.Parser;
