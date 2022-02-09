@@ -16,17 +16,19 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
             {
                 SearchRequest = operation,
             };
-            List<SearchResultReply> replies = await eventListener.OnSearchRequest(context, searchEvent);
+            SearchResultWrapper replies = await eventListener.OnSearchRequest(context, searchEvent);
 
             List<IProtocolOp> opReply = new List<IProtocolOp>();
-
-            foreach (SearchResultReply reply in replies)
+            if (replies.Results != null)
             {
-                SearchResultEntry entry = new SearchResultEntry(reply);
-                opReply.Add(entry);
+                foreach (SearchResultReply reply in replies.Results)
+                {
+                    SearchResultEntry entry = new SearchResultEntry(reply);
+                    opReply.Add(entry);
+                }
             }
 
-            var resultCode = (replies.Count > 0) ? LdapResult.ResultCodeEnum.Success : LdapResult.ResultCodeEnum.NoSuchObject;
+            var resultCode = (LdapResult.ResultCodeEnum)replies.ResultCode;
 
             LdapResult ldapResult = new LdapResult(resultCode, null, null);
             SearchResultDone searchResultDone = new SearchResultDone(ldapResult);

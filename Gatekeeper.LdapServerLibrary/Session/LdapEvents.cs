@@ -1,7 +1,6 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Gatekeeper.LdapServerLibrary.Session.Events;
 using Gatekeeper.LdapServerLibrary.Session.Replies;
+using System.Threading.Tasks;
 
 namespace Gatekeeper.LdapServerLibrary
 {
@@ -24,9 +23,9 @@ namespace Gatekeeper.LdapServerLibrary
         /// <param name="context"></param>
         /// <param name="searchEvent"></param>
         /// <returns>List of search replies</returns>
-        public virtual Task<List<SearchResultReply>> OnSearchRequest(ClientContext context, ISearchEvent searchEvent)
+        public virtual Task<SearchResultWrapper> OnSearchRequest(ClientContext context, ISearchEvent searchEvent)
         {
-            return Task.FromResult(new List<SearchResultReply>());
+            return Task.FromResult(new SearchResultWrapper());
         }
     }
 }

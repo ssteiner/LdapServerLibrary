@@ -27,4 +27,16 @@ namespace Gatekeeper.LdapServerLibrary.Session.Replies
             }
         }
     }
+
+    public class SearchResultWrapper
+    {
+        public string? ErrorMessage { get; set; }
+
+        public string? MatchedDn { get; set; }
+
+        public int ResultCode { get; set; }
+
+        public List<SearchResultReply>? Results { get; set; }
+    }
+
 }
