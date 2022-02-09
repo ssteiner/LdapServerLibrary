@@ -18,6 +18,8 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 
             if (success)
             {
+                if (rdn.Count == 0)
+                    context.IsAnonymous = true;
                 context.IsAuthenticated = true;
                 context.Rdn = rdn;
 
