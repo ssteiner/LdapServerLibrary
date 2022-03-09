@@ -1,7 +1,10 @@
-﻿using System.IO;
+﻿using Gatekeeper.LdapServerLibrary;
+using Microsoft.Extensions.Logging;
+using System;
+using System.IO;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Gatekeeper.LdapServerLibrary;
 
 namespace Sample
 {
@@ -11,12 +14,22 @@ namespace Sample
         {
             LdapServer server = new LdapServer
             {
-                Port = 3389,
+                Port = 3389, 
+                IPAddress = IPAddress.Any
             };
-            server.RegisterEventListener(new LdapEventListener());
-            server.RegisterLogger(new ConsoleLogger());
+            server.RegisterEventListener(new LdapEventListener(true));
+            ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            var logger = loggerFactory.CreateLogger<Program>();
+            server.RegisterLogger(logger);
             server.RegisterCertificate(new X509Certificate2(GetTlsCertificatePath()));
-            await server.Start();
+            var startTask = server.Start();
+            logger.LogInformation($"Server started on port {server.Port}, address: {server.IPAddress}, Press control-c to stop");
+            var cki = Console.ReadKey();
+            if (cki.Key == ConsoleKey.C && cki.Modifiers.HasFlag(ConsoleModifiers.Control))
+            {
+                server.Stop();
+                return;
+            }
         }
 
         private static string GetTlsCertificatePath()
