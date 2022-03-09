@@ -4,7 +4,10 @@ using System.Threading.Tasks;
 
 namespace Gatekeeper.LdapServerLibrary
 {
-    public class LdapEvents
+    /// <summary>
+    /// dummy implementation
+    /// </summary>
+    public class LdapEvents: ILdapEvents
     {
         /// <summary>
         /// Override this for authentication requests.
@@ -27,5 +30,24 @@ namespace Gatekeeper.LdapServerLibrary
         {
             return Task.FromResult(new SearchResultWrapper());
         }
+    }
+
+    public interface ILdapEvents
+    {
+        /// <summary>
+        /// authenticates requests
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="authenticationEvent"></param>
+        /// <returns>Whether the authentication should succeed or not</returns>
+        Task<bool> OnAuthenticationRequest(ClientContext context, IAuthenticationEvent authenticationEvent);
+
+        /// <summary>
+        /// performs the search request
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="searchEvent"></param>
+        /// <returns>List of search replies</returns>
+        Task<SearchResultWrapper> OnSearchRequest(ClientContext context, ISearchEvent searchEvent);
     }
 }

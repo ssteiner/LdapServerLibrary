@@ -14,7 +14,7 @@ namespace Gatekeeper.LdapServerLibrary
         public IPAddress IPAddress = IPAddress.Parse("127.0.0.1");
         private CancellationTokenSource? cancellation;
 
-        public void RegisterEventListener(LdapEvents ldapEvents)
+        public void RegisterEventListener(ILdapEvents ldapEvents)
         {
             SingletonContainer.SetLdapEventListener(ldapEvents);
         }

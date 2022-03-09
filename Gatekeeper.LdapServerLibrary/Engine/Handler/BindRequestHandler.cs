@@ -10,7 +10,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 {
     internal class BindRequestHandler : IRequestHandler<BindRequest>
     {
-        async Task<HandlerReply> IRequestHandler<BindRequest>.Handle(ClientContext context, LdapEvents eventListener, BindRequest operation)
+        async Task<HandlerReply> IRequestHandler<BindRequest>.Handle(ClientContext context, ILdapEvents eventListener, BindRequest operation)
         {
             Dictionary<string, List<string>> rdn = RdnParser.ParseRdnString(operation.Name);
             AuthenticationEvent authEvent = new AuthenticationEvent(rdn, operation.Authentication);

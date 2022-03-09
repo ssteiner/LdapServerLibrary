@@ -36,7 +36,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine
                 };
             }
 
-            LdapEvents eventListener = SingletonContainer.GetLdapEventListener();
+            var eventListener = SingletonContainer.GetLdapEventListener();
 
             Type protocolType = message.ProtocolOp.GetType();
             Type handlerType = SingletonContainer.GetHandlerMapper().GetHandlerForType(protocolType);

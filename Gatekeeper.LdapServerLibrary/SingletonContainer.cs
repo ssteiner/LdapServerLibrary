@@ -7,7 +7,7 @@ namespace Gatekeeper.LdapServerLibrary
 {
     internal class SingletonContainer
     {
-        private static LdapEvents LdapEventListener = new LdapEvents();
+        private static ILdapEvents LdapEventListener = new LdapEvents();
         private static OperationMapper OperationMapper = new OperationMapper();
         private static HandlerMapper HandlerMapper = new HandlerMapper();
         private static ILogger? Logger;
@@ -23,12 +23,12 @@ namespace Gatekeeper.LdapServerLibrary
             return Logger;
         }
 
-        static internal void SetLdapEventListener(LdapEvents listener)
+        static internal void SetLdapEventListener(ILdapEvents listener)
         {
             LdapEventListener = listener;
         }
 
-        static internal LdapEvents GetLdapEventListener()
+        static internal ILdapEvents GetLdapEventListener()
         {
             return LdapEventListener;
         }

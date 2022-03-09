@@ -10,7 +10,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
     {
         internal const string StartTLS = "1.3.6.1.4.1.1466.20037";
 
-        async Task<HandlerReply> IRequestHandler<ExtendedRequest>.Handle(ClientContext context, LdapEvents eventListener, ExtendedRequest operation)
+        async Task<HandlerReply> IRequestHandler<ExtendedRequest>.Handle(ClientContext context, ILdapEvents eventListener, ExtendedRequest operation)
         {
             if (operation.RequestName == StartTLS && SingletonContainer.GetCertificate() != null)
             {

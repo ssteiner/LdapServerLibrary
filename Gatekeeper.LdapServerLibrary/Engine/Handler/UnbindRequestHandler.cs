@@ -8,7 +8,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 {
     internal class UnbindRequestHandler : IRequestHandler<UnbindRequest>
     {
-        Task<HandlerReply> IRequestHandler<UnbindRequest>.Handle(ClientContext context, LdapEvents eventListener, UnbindRequest operation)
+        Task<HandlerReply> IRequestHandler<UnbindRequest>.Handle(ClientContext context, ILdapEvents eventListener, UnbindRequest operation)
         {
             context.IsAuthenticated = false;
             context.Rdn = new Dictionary<string, List<string>>();

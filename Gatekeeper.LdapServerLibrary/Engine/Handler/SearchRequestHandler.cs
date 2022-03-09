@@ -10,7 +10,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 {
     internal class SearchRequestHandler : IRequestHandler<SearchRequest>
     {
-        async Task<HandlerReply> IRequestHandler<SearchRequest>.Handle(ClientContext context, LdapEvents eventListener, SearchRequest operation)
+        async Task<HandlerReply> IRequestHandler<SearchRequest>.Handle(ClientContext context, ILdapEvents eventListener, SearchRequest operation)
         {
             SearchEvent searchEvent = new SearchEvent
             {
