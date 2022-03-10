@@ -1,6 +1,5 @@
-using System.Formats.Asn1;
 using Gatekeeper.LdapServerLibrary.Models.Operations.Response;
-using static Gatekeeper.LdapServerLibrary.Session.Replies.SearchResultReply;
+using System.Formats.Asn1;
 
 namespace Gatekeeper.LdapServerLibrary.Parser.Encoder
 {
@@ -15,23 +14,35 @@ namespace Gatekeeper.LdapServerLibrary.Parser.Encoder
                 writer.WriteOctetString(System.Text.Encoding.ASCII.GetBytes(message.SearchResultReply.CommonName));
                 using (writer.PushSequence())
                 {
-                    foreach (Attribute attribute in message.SearchResultReply.Attributes)
+                    foreach (var attribute in message.SearchResultReply.Attributes)
                     {
                         using (writer.PushSequence())
                         {
                             writer.WriteOctetString(System.Text.Encoding.ASCII.GetBytes(attribute.Key));
                             using (writer.PushSetOf())
                             {
-                                foreach (string value in attribute.Values)
+                                if (attribute.Values != null)
                                 {
-                                    writer.WriteOctetString(System.Text.Encoding.ASCII.GetBytes(value));
+                                    foreach (string value in attribute.Values)
+                                    {
+                                        if (value != null)
+                                            writer.WriteOctetString(System.Text.Encoding.UTF8.GetBytes(value));
+                                        else
+                                            writer.WriteNull();
+                                    }
+                                }
+                                if (attribute.ByteValue != null)
+                                {
+                                    if (attribute.ByteValue != null)
+                                        writer.WriteOctetString(attribute.ByteValue);
+                                    else
+                                        writer.WriteNull();
                                 }
                             }
                         }
                     }
                 }
             }
-
             return writer;
         }
     }

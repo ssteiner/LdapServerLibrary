@@ -18,12 +18,19 @@ namespace Gatekeeper.LdapServerLibrary.Session.Replies
         public class Attribute
         {
             internal readonly string Key;
-            internal List<string> Values;
+            internal List<string>? Values;
+            internal byte[]? ByteValue;
 
             public Attribute(string key, List<string> values)
             {
                 Key = key;
                 Values = values;
+            }
+
+            public Attribute(string key, byte[] value)
+            {
+                Key = key;
+                ByteValue = value;
             }
         }
     }
