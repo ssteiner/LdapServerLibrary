@@ -20,11 +20,13 @@ namespace Gatekeeper.LdapServerLibrary.Session.Replies
             internal readonly string Key;
             internal List<string>? Values;
             internal byte[]? ByteValue;
+            internal bool IsOid;
 
-            public Attribute(string key, List<string> values)
+            public Attribute(string key, List<string> values, bool isOid = false)
             {
                 Key = key;
                 Values = values;
+                IsOid = isOid;
             }
 
             public Attribute(string key, byte[] value)

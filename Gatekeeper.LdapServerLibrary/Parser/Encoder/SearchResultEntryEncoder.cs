@@ -23,12 +23,25 @@ namespace Gatekeeper.LdapServerLibrary.Parser.Encoder
                             {
                                 if (attribute.Values != null)
                                 {
-                                    foreach (string value in attribute.Values)
+                                    if (attribute.IsOid)
                                     {
-                                        if (value != null)
-                                            writer.WriteOctetString(System.Text.Encoding.UTF8.GetBytes(value));
-                                        else
-                                            writer.WriteNull();
+                                        foreach (string value in attribute.Values)
+                                        {
+                                            if (value != null)
+                                                writer.WriteObjectIdentifier(value);
+                                            else
+                                                writer.WriteNull();
+                                        }
+                                    }
+                                    else
+                                    {
+                                        foreach (string value in attribute.Values)
+                                        {
+                                            if (value != null)
+                                                writer.WriteOctetString(System.Text.Encoding.UTF8.GetBytes(value));
+                                            else
+                                                writer.WriteNull();
+                                        }
                                     }
                                 }
                                 if (attribute.ByteValue != null)
