@@ -11,7 +11,7 @@ namespace Gatekeeper.LdapServerLibrary
     public class LdapServer
     {
         public int Port = 339;
-        public IPAddress IPAddress = IPAddress.Parse("127.0.0.1");
+        public IPAddress IPAddress = IPAddress.Loopback;
         private CancellationTokenSource? cancellation;
 
         public void RegisterEventListener(ILdapEvents ldapEvents)
@@ -29,12 +29,16 @@ namespace Gatekeeper.LdapServerLibrary
             SingletonContainer.SetCertificate(certificate);
         }
 
-        public async Task Start()
+        public async Task Start(IPAddress? address = null)
         {
+            if (cancellation?.IsCancellationRequested == false) // server is already started
+                return;
+            if (address == null)
+                address = IPAddress.Loopback;
             ConnectionManager manager = new ConnectionManager();
             NetworkListener listener = new NetworkListener(
                 manager,
-                IPAddress,
+                address ?? IPAddress,
                 Port
             );
             if (cancellation != null)
@@ -47,6 +51,8 @@ namespace Gatekeeper.LdapServerLibrary
         {
             cancellation?.Cancel();
         }
+
+        public bool IsRunning => cancellation?.IsCancellationRequested == false;
 
         private void DisposeCancellationTokenSource()
         {
