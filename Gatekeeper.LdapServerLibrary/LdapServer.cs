@@ -12,7 +12,14 @@ namespace Gatekeeper.LdapServerLibrary
     {
         public int Port = 339;
         public IPAddress IPAddress = IPAddress.Loopback;
+        private readonly ConnectionManager manager;
+        private NetworkListener? listener;
         private CancellationTokenSource? cancellation;
+
+        public LdapServer()
+        {
+            manager = new ConnectionManager();
+        }
 
         public void RegisterEventListener(ILdapEvents ldapEvents)
         {
@@ -29,18 +36,17 @@ namespace Gatekeeper.LdapServerLibrary
             SingletonContainer.SetCertificate(certificate);
         }
 
-        public async Task Start(IPAddress? address = null)
+        public async Task Start()
         {
-            if (cancellation?.IsCancellationRequested == false) // server is already started
+            if (IsRunning) // server already running
                 return;
-            if (address == null)
-                address = IPAddress.Loopback;
-            ConnectionManager manager = new ConnectionManager();
-            NetworkListener listener = new NetworkListener(
-                manager,
-                address ?? IPAddress,
-                Port
-            );
+            if (listener == null)
+            {
+                listener = new NetworkListener(
+                    manager,
+                    IPAddress,
+                    Port);
+            }
             if (cancellation != null)
                 DisposeCancellationTokenSource();
             cancellation = new CancellationTokenSource();
@@ -52,7 +58,7 @@ namespace Gatekeeper.LdapServerLibrary
             cancellation?.Cancel();
         }
 
-        public bool IsRunning => cancellation?.IsCancellationRequested == false;
+        public bool IsRunning => listener?.IsRunning ?? false;
 
         private void DisposeCancellationTokenSource()
         {
@@ -65,5 +71,6 @@ namespace Gatekeeper.LdapServerLibrary
 
             }
         }
+
     }
 }

@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Gatekeeper.LdapServerLibrary.Network
@@ -15,6 +16,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
     internal class ClientSession
     {
         internal readonly TcpClient Client;
+        internal readonly CancellationToken CancellationToken;
         private bool _useStartTls;
         private bool _clientIsConnected = true;
 
@@ -22,9 +24,11 @@ namespace Gatekeeper.LdapServerLibrary.Network
         private const int ASN_MAX_SINGLE_BYTE_LENGTH = 127;
         private const int ASN_LENGTH_PREFIX_COUNT = 2;
 
-        internal ClientSession(TcpClient client)
+        internal ClientSession(TcpClient client, CancellationToken cancellationToken)
         {
             Client = client;
+            CancellationToken = cancellationToken;
+            cancellationToken.Register(TokenAborted);
         }
 
         private int GetMultiByteLength(byte lengthIndicator)
@@ -46,7 +50,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
                 while (true)
                 {
                     byte[] buffer = new byte[1];
-                    int read = await stream.ReadAsync(buffer, 0, buffer.Length);
+                    int read = await stream.ReadAsync(buffer, 0, buffer.Length, CancellationToken);
 
                     if (streamPosition == ASN_LENGTH_INDICATOR)
                     {
@@ -124,13 +128,11 @@ namespace Gatekeeper.LdapServerLibrary.Network
                     }
                     catch (Exception e)
                     {
-                        ILogger? logger = SingletonContainer.GetLogger();
-                        if (logger != null)
+                        if (e is not OperationCanceledException) // read operation aborted => client shutdown
                         {
-                            logger.LogError(e, $"Exception handling request from {endpoint}");
+                            ILogger? logger = SingletonContainer.GetLogger();
+                            logger?.LogError(e, $"Exception handling request from {endpoint}");
                         }
-
-                        break;
                     }
                 }
 
@@ -165,6 +167,11 @@ namespace Gatekeeper.LdapServerLibrary.Network
                     }
                 }
             }
+        }
+
+        private void TokenAborted()
+        {
+            _clientIsConnected = false;
         }
     }
 }
