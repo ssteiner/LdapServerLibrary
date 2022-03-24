@@ -128,7 +128,27 @@ namespace Gatekeeper.LdapServerLibrary.Network
                     }
                     catch (Exception e)
                     {
-                        if (e is not OperationCanceledException) // read operation aborted => client shutdown
+                        if (e is OperationCanceledException) // read operation aborted => server shutdown
+                        {
+
+                        }
+                        else if (e is IOException i)
+                        {
+                            if (i.InnerException != null && i.InnerException is SocketException s)
+                            {
+                                if (s.SocketErrorCode != SocketError.ConnectionReset)
+                                {
+                                    ILogger? logger = SingletonContainer.GetLogger();
+                                    logger?.LogWarning($"Socket exception dealing with request from {endpoint}");
+                                }
+                            }
+                            else
+                            {
+                                ILogger? logger = SingletonContainer.GetLogger();
+                                logger?.LogError(e, $"IOException handling request from {endpoint}");
+                            }
+                        }
+                        else
                         {
                             ILogger? logger = SingletonContainer.GetLogger();
                             logger?.LogError(e, $"Exception handling request from {endpoint}");
