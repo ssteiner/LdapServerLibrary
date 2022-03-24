@@ -7,6 +7,7 @@ using Gatekeeper.LdapPacketParserLibrary.Models.Operations.Request;
 using Gatekeeper.LdapServerLibrary;
 using Gatekeeper.LdapServerLibrary.Session.Events;
 using Gatekeeper.LdapServerLibrary.Session.Replies;
+using Microsoft.Extensions.Logging;
 using Sample.Extensions;
 
 namespace Sample
@@ -15,10 +16,12 @@ namespace Sample
     {
 
         private bool allowAnonymous;
+        private readonly ILogger logger;
 
-        public LdapEventListener(bool allowAnonymous = false)
+        public LdapEventListener(ILogger logger, bool allowAnonymous = false)
         {
             this.allowAnonymous = allowAnonymous;
+            this.logger = logger;
         }
 
         public Task<bool> OnAuthenticationRequest(ClientContext context, IAuthenticationEvent authenticationEvent)
@@ -28,16 +31,19 @@ namespace Sample
 
             if ((cnValue == null || cnValue.Count == 0) && string.IsNullOrEmpty(authenticationEvent.Password) && allowAnonymous)
                 return Task.FromResult(true);
-
+            var userDn = $"{string.Join(",", cnValue.Select(x => $"cn={x}"))},{string.Join(",", dcValue.Select(x => $"dc={x}"))}";
+            logger.Log(LogLevel.Information, $"Login from {userDn}");
             if (cnValue.Contains("Manager") && dcValue.Contains("example") && dcValue.Contains("com"))
             {
+                logger.Log(LogLevel.Information, "Login allowed");
                 return Task.FromResult(true);
             }
             else if (cnValue.Contains("OnlyBindUser") && authenticationEvent.Password == "OnlyBindUserPassword")
             {
+                logger.Log(LogLevel.Information, "bind-only login allowed");
                 return Task.FromResult(true);
             }
-
+            logger.Log(LogLevel.Warning, "Login denied");
             return Task.FromResult(false);
         }
 
@@ -65,7 +71,8 @@ namespace Sample
             var resultWrapper = new SearchResultWrapper { };
             if (searchEvent.SearchRequest.BaseObject == string.Empty && presentFilter.Value?.ToLower() == LdapUtil.ObjectClass)
             {
-                var directories = LdapUtil.ListAvailableDirectories(searchEvent.SearchRequest.BaseObject, serverRoot, DirectoryNames, searchEvent.SearchRequest.AttributeSelection);
+                var directories = LdapUtil.ListAvailableDirectories(searchEvent.SearchRequest.BaseObject, serverRoot, DirectoryNames, 
+                    searchEvent.SearchRequest.AttributeSelection);
                 if (searchEvent.SearchRequest.AttributeSelection?.Contains(LdapUtil.NamingContexts, StringComparer.OrdinalIgnoreCase) == true) // list naming contexts
                 {
                     resultWrapper.Results = new List<SearchResultReply> { LdapUtil.GetRoot(serverRoot, searchEvent.SearchRequest.AttributeSelection) };
@@ -86,7 +93,8 @@ namespace Sample
                     && presentFilter.Value?.ToLower() == LdapUtil.ObjectClass) // search root of directory
                 {
                     if (searchEvent.SearchRequest.Scope == SearchRequest.ScopeEnum.SingleLevel) // list all items
-                        resultWrapper.Results = LdapUtil.ListAvailableDirectories(searchEvent.SearchRequest.BaseObject, serverRoot, DirectoryNames, searchEvent.SearchRequest.AttributeSelection);
+                        resultWrapper.Results = LdapUtil.ListAvailableDirectories(searchEvent.SearchRequest.BaseObject, serverRoot, DirectoryNames, 
+                            searchEvent.SearchRequest.AttributeSelection);
                     else if (searchEvent.SearchRequest.Scope == SearchRequest.ScopeEnum.BaseObject) // get the root itself
                         resultWrapper.Results = new List<SearchResultReply> { LdapUtil.GetRoot(serverRoot, searchEvent.SearchRequest.AttributeSelection) };
                     //var allUsers = DumpUsers(db.GetUserDatabase());
