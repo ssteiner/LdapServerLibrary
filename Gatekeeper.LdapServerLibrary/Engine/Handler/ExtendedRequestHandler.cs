@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Gatekeeper.LdapServerLibrary.Models.Operations;
 using Gatekeeper.LdapServerLibrary.Models.Operations.Response;
 using Gatekeeper.LdapPacketParserLibrary.Models.Operations.Request;
+using System.Numerics;
 
 namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 {
@@ -10,7 +11,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine.Handler
     {
         internal const string StartTLS = "1.3.6.1.4.1.1466.20037";
 
-        async Task<HandlerReply> IRequestHandler<ExtendedRequest>.Handle(ClientContext context, ILdapEvents eventListener, ExtendedRequest operation)
+        async Task<HandlerReply> IRequestHandler<ExtendedRequest>.Handle(ClientContext context, ILdapEvents eventListener, ExtendedRequest operation, BigInteger messageId)
         {
             if (operation.RequestName == StartTLS && SingletonContainer.GetCertificate() != null)
             {

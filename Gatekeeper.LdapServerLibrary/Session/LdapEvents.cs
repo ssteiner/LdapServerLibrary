@@ -9,6 +9,18 @@ namespace Gatekeeper.LdapServerLibrary
     /// </summary>
     public class LdapEvents: ILdapEvents
     {
+
+        /// <summary>
+        /// abandons an ongoing search
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="abandonEvent"></param>
+        /// <returns></returns>
+        public Task OnAbandonRequest(ClientContext context, IAbandonEvent abandonEvent)
+        {
+            return Task.FromResult(0);
+        }
+
         /// <summary>
         /// Override this for authentication requests.
         /// </summary>
@@ -49,5 +61,13 @@ namespace Gatekeeper.LdapServerLibrary
         /// <param name="searchEvent"></param>
         /// <returns>List of search replies</returns>
         Task<SearchResultWrapper> OnSearchRequest(ClientContext context, ISearchEvent searchEvent);
+
+        /// <summary>
+        /// abandons an ongoing search
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="abandonEvent"></param>
+        /// <returns></returns>
+        Task OnAbandonRequest(ClientContext context, IAbandonEvent abandonEvent);
     }
 }

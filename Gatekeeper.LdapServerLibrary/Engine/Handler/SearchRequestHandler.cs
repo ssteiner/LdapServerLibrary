@@ -5,16 +5,18 @@ using Gatekeeper.LdapServerLibrary.Models.Operations.Response;
 using Gatekeeper.LdapPacketParserLibrary.Models.Operations.Request;
 using Gatekeeper.LdapServerLibrary.Session.Events;
 using Gatekeeper.LdapServerLibrary.Session.Replies;
+using System.Numerics;
 
 namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 {
     internal class SearchRequestHandler : IRequestHandler<SearchRequest>
     {
-        async Task<HandlerReply> IRequestHandler<SearchRequest>.Handle(ClientContext context, ILdapEvents eventListener, SearchRequest operation)
+        async Task<HandlerReply> IRequestHandler<SearchRequest>.Handle(ClientContext context, ILdapEvents eventListener, SearchRequest operation, BigInteger messageId)
         {
             SearchEvent searchEvent = new SearchEvent
             {
-                SearchRequest = operation,
+                SearchRequest = operation, 
+                MessageId = messageId
             };
             SearchResultWrapper replies = await eventListener.OnSearchRequest(context, searchEvent);
 

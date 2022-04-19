@@ -28,6 +28,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine
                 typeof(BindRequest),
                 typeof(UnbindRequest),
                 typeof(ExtendedRequest),
+                typeof(AbandonRequest)
             };
             if (!_clientContext.IsAuthenticated && !publicOperations.Contains(message.ProtocolOp.GetType()))
             {
@@ -41,7 +42,7 @@ namespace Gatekeeper.LdapServerLibrary.Engine
             Type protocolType = message.ProtocolOp.GetType();
             Type handlerType = SingletonContainer.GetHandlerMapper().GetHandlerForType(protocolType);
 
-            var parameters = new object[] { _clientContext, eventListener, message.ProtocolOp };
+            var parameters = new object[] { _clientContext, eventListener, message.ProtocolOp, message.MessageId };
             object? invokableClass = FormatterServices.GetUninitializedObject(handlerType);
 
             if (invokableClass != null)
@@ -68,9 +69,11 @@ namespace Gatekeeper.LdapServerLibrary.Engine
                         return messages;
                     }
                 }
+                else
+                    throw new Exception($"Handle method not found in {handlerType.Name}");
             }
 
-            throw new System.Exception();
+            throw new Exception();
         }
     }
 }

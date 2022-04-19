@@ -5,12 +5,13 @@ using Gatekeeper.LdapServerLibrary.Models.Operations.Response;
 using Gatekeeper.LdapPacketParserLibrary.Models.Operations.Request;
 using Gatekeeper.LdapServerLibrary.Parser;
 using Gatekeeper.LdapServerLibrary.Session.Events;
+using System.Numerics;
 
 namespace Gatekeeper.LdapServerLibrary.Engine.Handler
 {
     internal class BindRequestHandler : IRequestHandler<BindRequest>
     {
-        async Task<HandlerReply> IRequestHandler<BindRequest>.Handle(ClientContext context, ILdapEvents eventListener, BindRequest operation)
+        async Task<HandlerReply> IRequestHandler<BindRequest>.Handle(ClientContext context, ILdapEvents eventListener, BindRequest operation, BigInteger messageId)
         {
             Dictionary<string, List<string>> rdn = RdnParser.ParseRdnString(operation.Name);
             AuthenticationEvent authEvent = new AuthenticationEvent(rdn, operation.Authentication);

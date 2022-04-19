@@ -170,12 +170,14 @@ namespace Gatekeeper.LdapServerLibrary.Network
             List<LdapMessage> replies = await engine.GenerateReply(message);
             foreach (LdapMessage outMsg in replies)
             {
-                if (outMsg.ProtocolOp.GetType() == typeof(Models.Operations.Response.UnbindDummyResponse))
+
+                if (outMsg.ProtocolOp.GetType() == typeof(Models.Operations.Response.UnbindDummyResponse) 
+                    || outMsg.ProtocolOp.GetType() == typeof(Models.Operations.Response.AbandonResponse))
                 {
                     _clientIsConnected = false;
                     break;
                 }
-                byte[] msg = (new Parser.PacketParser()).TryEncodePacket(outMsg);
+                byte[] msg = new Parser.PacketParser().TryEncodePacket(outMsg);
                 stream.Write(msg, 0, msg.Length);
 
                 if (outMsg.ProtocolOp.GetType() == typeof(Models.Operations.Response.ExtendedOperationResponse))

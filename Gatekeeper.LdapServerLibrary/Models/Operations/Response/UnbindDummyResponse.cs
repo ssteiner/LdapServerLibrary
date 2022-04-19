@@ -4,7 +4,7 @@ namespace Gatekeeper.LdapServerLibrary.Models.Operations.Response
     {
         int IProtocolOp.GetTag()
         {
-            return -1;
+            return -2;
         }
     }
 }
