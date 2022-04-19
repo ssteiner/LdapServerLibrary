@@ -139,7 +139,7 @@ namespace Gatekeeper.LdapServerLibrary.Network
                                 if (s.SocketErrorCode != SocketError.ConnectionReset)
                                 {
                                     ILogger? logger = SingletonContainer.GetLogger();
-                                    logger?.LogWarning($"Socket exception dealing with request from {endpoint}");
+                                    logger?.LogWarning($"Socket exception dealing with request from {endpoint}. Error code: {s.SocketErrorCode}");
                                 }
                             }
                             else
