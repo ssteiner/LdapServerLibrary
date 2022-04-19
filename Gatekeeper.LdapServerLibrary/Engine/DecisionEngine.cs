@@ -68,12 +68,13 @@ namespace Gatekeeper.LdapServerLibrary.Engine
 
                         return messages;
                     }
+                    throw new Exception($"No result from Handle in {handlerType.Name}");
                 }
                 else
                     throw new Exception($"Handle method not found in {handlerType.Name}");
             }
-
-            throw new Exception();
+            else
+                throw new Exception($"Unable to get unitialized object of type {handlerType.Name}");
         }
     }
 }
