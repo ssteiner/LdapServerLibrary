@@ -17,11 +17,17 @@ namespace Sample
 
         private bool allowAnonymous;
         private readonly ILogger logger;
+        private readonly UserDatabase db;
+        private readonly List<UserDatabase.User> users;
+        private readonly IQueryable<UserDatabase.User> usersQuery;
 
         public LdapEventListener(ILogger logger, bool allowAnonymous = false)
         {
             this.allowAnonymous = allowAnonymous;
             this.logger = logger;
+            db = new UserDatabase();
+            users = db.GetUserDatabase();
+            usersQuery = users.AsQueryable();
         }
 
         public Task<bool> OnAuthenticationRequest(ClientContext context, IAuthenticationEvent authenticationEvent)
@@ -51,7 +57,7 @@ namespace Sample
 
         public async Task<SearchResultWrapper> OnSearchRequest(ClientContext context, ISearchEvent searchEvent)
         {
-            Console.WriteLine(Convert.ToBase64String(searchEvent.SearchRequest.RawPacket));
+            //Console.WriteLine(Convert.ToBase64String(searchEvent.SearchRequest.RawPacket));
             if (context.Rdn.TryGetValue("cn", out var cns) && cns.FirstOrDefault() == "OnlyBindUser")
             {
                 return new SearchResultWrapper { ResultCode = 32 }; // return 'no such object
@@ -87,7 +93,6 @@ namespace Sample
             }
             else if (!string.IsNullOrEmpty(searchEvent.SearchRequest.BaseObject))
             {
-                var db = new UserDatabase();
                 var baseObjectPath = searchEvent.SearchRequest.BaseObject?.ToLower();
                 if (string.Compare(baseObjectPath, serverRoot, StringComparison.OrdinalIgnoreCase) == 0 
                     && presentFilter.Value?.ToLower() == LdapUtil.ObjectClass) // search root of directory
@@ -113,15 +118,15 @@ namespace Sample
                         }
                         else if (searchEvent.SearchRequest.Scope == SearchRequest.ScopeEnum.SingleLevel) // expand the object
                         {
-                            var directoryUsers = db.GetUserDatabase().Where(u => u.Dn.ToLower().EndsWith(baseObjectPath));
+                            var directoryUsers = usersQuery.Where(u => u.Dn.ToLower().EndsWith(baseObjectPath));
                             var parsedUsers = DumpUsers(directoryUsers);
                             resultWrapper.Results = new List<SearchResultReply>(parsedUsers);
                         }
                         return resultWrapper;
                     }
-                    else if (LdapUtil.IsObjectInDirectory(baseObjectPath, DirectoryNames, serverRoot)) // object that is in a directory folder
+                    else if (LdapUtil.IsObjectInDirectory(baseObjectPath, DirectoryNames, serverRoot, true)) // object that is in a directory folder or the root
                     {
-                        var allUsers = db.GetUserDatabase().Where(u => u.Dn.ToLower() == searchEvent.SearchRequest.BaseObject?.ToLower()).ToList();
+                        var allUsers = users.Where(u => u.Dn.ToLower() == searchEvent.SearchRequest.BaseObject?.ToLower()).ToList();
                         var listReply = DumpUsers(allUsers);
                         if (searchEvent.SearchRequest.Scope == SearchRequest.ScopeEnum.BaseObject) // get the object
                             resultWrapper.Results = listReply;
@@ -134,7 +139,7 @@ namespace Sample
                 }
                 else // get single item
                 {
-                    var allUsers = db.GetUserDatabase().Where(u => u.Dn.ToLower() == searchEvent.SearchRequest.BaseObject?.ToLower()).ToList();
+                    var allUsers = users.Where(u => u.Dn.ToLower() == searchEvent.SearchRequest.BaseObject?.ToLower()).ToList();
                     var listReply = DumpUsers(allUsers);
                     if (searchEvent.SearchRequest.AttributeSelection.All(x => x.ToLower() != LdapUtil.ObjectClass)) // just check if it's available
                         resultWrapper.Results = listReply;
@@ -144,7 +149,7 @@ namespace Sample
             return resultWrapper;
         }
 
-        private static Task<SearchResultWrapper> ProcessSearchRequest(ISearchEvent searchEvent, ClientContext context)
+        private Task<SearchResultWrapper> ProcessSearchRequest(ISearchEvent searchEvent, ClientContext context)
         {
             var resultWrapper = new SearchResultWrapper { };
             var filter = LdapUtil.RestoreLdapFilter(searchEvent.SearchRequest.Filter);
@@ -152,8 +157,8 @@ namespace Sample
             int? limit = searchEvent.SearchRequest.SizeLimit;
 
             // Load the user database that queries will be executed against
-            UserDatabase dbContainer = new UserDatabase();
-            IQueryable<UserDatabase.User> userDb = dbContainer.GetUserDatabase().AsQueryable();
+            //UserDatabase dbContainer = new UserDatabase();
+            //IQueryable<UserDatabase.User> userDb = dbContainer.GetUserDatabase().AsQueryable();
 
             var itemExpression = Expression.Parameter(typeof(UserDatabase.User));
             var searchExpressionBuilder = new SearchExpressionBuilder(searchEvent);
@@ -161,7 +166,7 @@ namespace Sample
             var queryLambda = Expression.Lambda<Func<UserDatabase.User, bool>>(conditions, itemExpression);
             var predicate = queryLambda.Compile();
 
-            var results = userDb.Where(predicate).ToList();
+            var results = usersQuery.Where(predicate).ToList();
 
             var replies = new List<SearchResultReply>();
             foreach (var user in results)
