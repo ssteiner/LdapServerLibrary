@@ -215,6 +215,11 @@ namespace Sample
             return replies;
         }
 
+        public Task OnAbandonRequest(ClientContext context, IAbandonEvent abandonEvent)
+        {
+            return new Task(() => { });
+        }
+
         private readonly List<string> DirectoryNames = new() { "ActiveDirectory", "Zuweiser", "ETV.online" };
 
     }
